@@ -3,183 +3,499 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Qwen Chat</title>
+<title>Qonvo</title>
 <style>
+  /* ─── Theme Tokens ─── */
   :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface-hover: #1c2128;
-    --border: #30363d;
-    --text: #c9d1d9;
-    --text-secondary: #8b949e;
-    --accent: #58a6ff;
-    --accent-hover: #79b8ff;
-    --user-bubble: #1f6feb;
-    --assistant-bubble: #21262d;
-    --shadow: 0 4px 12px rgba(0,0,0,0.4);
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-elevated: #ffffff;
+    --border: #e2e4e9;
+    --text: #1a1d23;
+    --text-secondary: #6b7280;
+    --text-tertiary: #9ca3af;
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-soft: #e0e7ff;
+    --user-bubble: #4f46e5;
+    --user-bubble-text: #ffffff;
+    --assistant-bubble: #f3f4f6;
+    --assistant-bubble-border: #e5e7eb;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 4px 16px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.08);
+    --radius-sm: 10px;
+    --radius: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 28px;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  [data-theme="dark"] {
+    --bg: #0f1117;
+    --surface: #181a21;
+    --surface-elevated: #1e2029;
+    --border: #2a2d38;
+    --text: #e8eaf0;
+    --text-secondary: #8b92a5;
+    --text-tertiary: #5c6275;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --accent-soft: #1e1b4b;
+    --user-bubble: #6366f1;
+    --user-bubble-text: #ffffff;
+    --assistant-bubble: #1e2029;
+    --assistant-bubble-border: #2a2d38;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow: 0 4px 16px rgba(0,0,0,0.35);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.45);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; overflow: hidden; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
     display: flex;
     flex-direction: column;
+    transition: background var(--transition), color var(--transition);
   }
+
+  /* ─── Header ─── */
   #header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     flex-shrink: 0;
-    position: sticky; top: 0; z-index: 10;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 60px;
+    transition: background var(--transition), border-color var(--transition);
   }
-  #header .dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: #3fb950; box-shadow: 0 0 8px #3fb950;
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
-  #header h1 { font-size: 16px; font-weight: 600; }
-  #header .sub { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
 
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .logo-wrap svg {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .logo-wrap h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+    transition: color var(--transition);
+  }
+
+  .logo-wrap .badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 3px 8px;
+    border-radius: 100px;
+    margin-left: 6px;
+    letter-spacing: 0.2px;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .theme-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .theme-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .theme-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* ─── Chat Area ─── */
   #chat {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 24px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
+
   .msg {
     display: flex;
     flex-direction: column;
-    max-width: 85%;
-    animation: slideIn .25s ease-out;
+    max-width: 82%;
+    animation: msgIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
+
   .msg.user { align-self: flex-end; align-items: flex-end; }
   .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
   .bubble {
-    padding: 12px 16px;
-    border-radius: 18px;
-    line-height: 1.55;
+    padding: 14px 18px;
+    border-radius: var(--radius-xl);
+    line-height: 1.6;
     font-size: 15px;
     word-wrap: break-word;
     white-space: pre-wrap;
+    box-shadow: var(--shadow-sm);
+    transition: background var(--transition), color var(--transition);
   }
+
   .user .bubble {
     background: var(--user-bubble);
-    color: #fff;
-    border-bottom-right-radius: 4px;
+    color: var(--user-bubble-text);
+    border-bottom-right-radius: 6px;
+    font-weight: 400;
   }
+
   .assistant .bubble {
     background: var(--assistant-bubble);
-    border: 1px solid var(--border);
-    border-bottom-left-radius: 4px;
+    color: var(--text);
+    border: 1px solid var(--assistant-bubble-border);
+    border-bottom-left-radius: 6px;
   }
+
   .timestamp {
     font-size: 11px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-    padding: 0 4px;
+    color: var(--text-tertiary);
+    margin-top: 5px;
+    padding: 0 6px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    transition: color var(--transition);
   }
 
+  /* ─── Typing Indicator ─── */
   .typing {
     display: flex;
-    gap: 6px;
-    padding: 16px;
+    gap: 5px;
+    padding: 18px 20px;
     align-self: flex-start;
-  }
-  .typing span {
-    width: 8px; height: 8px;
-    background: var(--text-secondary);
-    border-radius: 50%;
-    animation: bounce 1.4s infinite ease-in-out both;
-  }
-  .typing span:nth-child(1) { animation-delay: -0.32s; }
-  .typing span:nth-child(2) { animation-delay: -0.16s; }
-  @keyframes bounce {
-    0%, 80%, 100% { transform: scale(0); }
-    40% { transform: scale(1); }
+    background: var(--assistant-bubble);
+    border: 1px solid var(--assistant-bubble-border);
+    border-radius: var(--radius-xl);
+    border-bottom-left-radius: 6px;
+    box-shadow: var(--shadow-sm);
+    transition: background var(--transition), border-color var(--transition);
   }
 
+  .typing span {
+    width: 7px;
+    height: 7px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    animation: bounce 1.5s infinite ease-in-out both;
+    transition: background var(--transition);
+  }
+
+  .typing span:nth-child(1) { animation-delay: -0.32s; }
+  .typing span:nth-child(2) { animation-delay: -0.16s; }
+
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ─── Input Area ─── */
   #input-area {
     background: var(--surface);
     border-top: 1px solid var(--border);
-    padding: 12px 16px 24px;
+    padding: 14px 20px 24px;
     display: flex;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
+    transition: background var(--transition), border-color var(--transition);
   }
+
   #msg-input {
     flex: 1;
     background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    padding: 12px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 13px 20px;
     color: var(--text);
     font-size: 16px;
     outline: none;
-    transition: border-color .2s;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    font-family: inherit;
   }
-  #msg-input:focus { border-color: var(--accent); }
+
+  #msg-input::placeholder {
+    color: var(--text-tertiary);
+    transition: color var(--transition);
+  }
+
+  #msg-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
   #send-btn {
-    width: 48px; height: 48px;
-    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-lg);
     border: none;
     background: var(--accent);
     color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: background .2s;
+    transition: background var(--transition), transform 0.15s ease, box-shadow var(--transition);
     flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
   }
-  #send-btn:active { background: var(--accent-hover); transform: scale(0.95); }
-  #send-btn:disabled { background: var(--border); cursor: not-allowed; }
 
+  #send-btn:hover {
+    background: var(--accent-hover);
+    box-shadow: var(--shadow);
+  }
+
+  #send-btn:active {
+    transform: scale(0.93);
+  }
+
+  #send-btn:disabled {
+    background: var(--border);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  #send-btn svg {
+    width: 20px;
+    height: 20px;
+    margin-left: 2px;
+  }
+
+  /* ─── Error Toast ─── */
   .error-toast {
-    position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
-    background: #da3633; color: #fff; padding: 10px 20px;
-    border-radius: 8px; font-size: 13px; z-index: 100;
-    box-shadow: var(--shadow); animation: fadeIn .3s;
+    position: fixed;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #dc2626;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 100;
+    box-shadow: var(--shadow-lg);
+    animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 90vw;
+    text-align: center;
+    line-height: 1.5;
   }
-  @keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; } }
 
-  .empty-state {
-    text-align: center; color: var(--text-secondary);
-    margin: auto; padding: 40px 20px;
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, -12px) scale(0.96); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
   }
-  .empty-state h2 { font-size: 20px; margin-bottom: 8px; color: var(--text); }
-  .empty-state p { font-size: 14px; line-height: 1.6; }
+
+  /* ─── Empty State ─── */
+  .empty-state {
+    text-align: center;
+    color: var(--text-secondary);
+    margin: auto;
+    padding: 40px 24px;
+    animation: msgIn 0.5s ease-out;
+    max-width: 420px;
+  }
+
+  .empty-state .empty-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 20px;
+    color: var(--text-tertiary);
+    transition: color var(--transition);
+  }
+
+  .empty-state h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    transition: color var(--transition);
+  }
+
+  .empty-state p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    transition: color var(--transition);
+  }
+
+  .empty-state .hint {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .empty-state .hint span {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    background: var(--assistant-bubble);
+    border: 1px solid var(--assistant-bubble-border);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-weight: 500;
+    transition: all var(--transition);
+  }
+
+  /* ─── Scrollbar ─── */
+  #chat::-webkit-scrollbar { width: 5px; }
+  #chat::-webkit-scrollbar-track { background: transparent; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+  #chat::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+  /* ─── Desktop Enhancements ─── */
+  @media (min-width: 768px) {
+    #chat {
+      padding: 32px 24px;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .msg { max-width: 75%; }
+
+    #input-area {
+      padding: 16px 24px 28px;
+      justify-content: center;
+    }
+
+    #input-area > * { max-width: 752px; width: 100%; }
+    #send-btn { width: 52px; flex-shrink: 0; flex-grow: 0; }
+
+    .empty-state { padding: 60px 24px; }
+    .empty-state h2 { font-size: 26px; }
+    .empty-state p { font-size: 15px; }
+  }
+
+  @media (min-width: 1024px) {
+    #header {
+      padding: 0 28px;
+      height: 64px;
+    }
+
+    .logo-wrap h1 { font-size: 20px; }
+
+    #chat {
+      padding: 40px 24px;
+      max-width: 880px;
+    }
+
+    .msg { max-width: 70%; }
+
+    #input-area > * { max-width: 832px; }
+  }
 </style>
 </head>
 <body>
 
 <div id="header">
-  <div class="dot"></div>
-  <h1>Qwen 2.5-3B</h1>
-  <span class="sub">Free • No Token</span>
+  <div class="logo-wrap">
+    <!-- Qonvo Logo SVG -->
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Qonvo logo">
+      <rect width="40" height="40" rx="10" fill="var(--accent)"/>
+      <path d="M20 10C14.477 10 10 14.253 10 19.5c0 2.87 1.36 5.43 3.5 7.12L12 30l4.15-2.38C17.24 28.2 18.57 28.5 20 28.5c5.523 0 10-4.253 10-9.5S25.523 10 20 10z" fill="#fff" opacity="0.15"/>
+      <path d="M20 12c-4.418 0-8 3.582-8 8s3.582 8 8 8c1.13 0 2.21-.23 3.19-.65L25 29l-1.5-3.2C25.1 24.5 26 22.1 26 20c0-4.418-3.582-8-8-8z" fill="#fff"/>
+      <circle cx="16.5" cy="20" r="1.2" fill="var(--accent)"/>
+      <circle cx="20" cy="20" r="1.2" fill="var(--accent)"/>
+      <circle cx="23.5" cy="20" r="1.2" fill="var(--accent)"/>
+    </svg>
+    <h1>Qonvo</h1>
+    <span class="badge">2.5-3B</span>
+  </div>
+  <div class="header-actions">
+    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+      <!-- Sun icon -->
+      <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+      <!-- Moon icon -->
+      <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
 </div>
 
 <div id="chat">
   <div class="empty-state" id="empty">
-    <h2>How can I help you?</h2>
-    <p>Running on Hugging Face Inference API<br>No account or token needed</p>
+    <svg class="empty-icon" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="8" y="12" width="48" height="40" rx="8"/>
+      <path d="M20 28h24M20 36h16"/>
+      <circle cx="44" cy="44" r="10" fill="var(--bg)" stroke-width="1.5"/>
+      <path d="M40 44h8M44 40v8"/>
+    </svg>
+    <h2>What can I help with?</h2>
+    <p>Powered by Qwen 2.5-3B via Hugging Face Inference API.<br>No account or token needed.</p>
+    <div class="hint">
+      <span>Explain a concept</span>
+      <span>Write code</span>
+      <span>Brainstorm ideas</span>
+    </div>
   </div>
 </div>
 
 <div id="input-area">
-  <input id="msg-input" type="text" placeholder="Message..." autocomplete="off" enterkeyhint="send">
-  <button id="send-btn" aria-label="Send">➤</button>
+  <input id="msg-input" type="text" placeholder="Message Qonvo..." autocomplete="off" enterkeyhint="send">
+  <button id="send-btn" aria-label="Send">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="22" y1="2" x2="11" y2="13"/>
+      <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    </svg>
+  </button>
 </div>
 
 <script>
@@ -322,6 +638,39 @@ input.addEventListener('keypress', e => { if (e.key === 'Enter') send(); });
 
 // Auto-focus input on load
 input.focus();
+
+// ─── Theme Toggle ───
+const themeToggle = document.getElementById('theme-toggle');
+const iconSun = document.getElementById('icon-sun');
+const iconMoon = document.getElementById('icon-moon');
+
+function setTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    iconSun.style.display = 'none';
+    iconMoon.style.display = 'block';
+    localStorage.setItem('qonvo-theme', 'dark');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+    iconSun.style.display = 'block';
+    iconMoon.style.display = 'none';
+    localStorage.setItem('qonvo-theme', 'light');
+  }
+}
+
+// Init theme
+const savedTheme = localStorage.getItem('qonvo-theme');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+  setTheme('dark');
+} else {
+  setTheme('light');
+}
+
+themeToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.hasAttribute('data-theme');
+  setTheme(isDark ? 'light' : 'dark');
+});
 </script>
 
 </body>
